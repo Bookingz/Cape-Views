@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking - Cape Views</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin: 15px 0 5px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .total-price {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 15px;
+      background-color: #004d66;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #003344;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Book Your Stay at Cape Views</h2>
+  <form id="bookingForm">
+    <label for="checkin">Check-in Date *</label>
+    <input type="date" id="checkin" required>
+
+    <label for="checkout">Check-out Date *</label>
+    <input type="date" id="checkout" required>
+
+    <label for="roomType">Room Type *</label>
+    <select id="roomType" required>
+      <option value="">Select a room type</option>
+      <option value="1">1 Bedroom - R850.00/night</option>
+      <option value="2">2 Bedrooms - R1600.00/night</option>
+      <option value="4">4 Bedrooms - R2500.00/night</option>
+    </select>
+
+    <div class="total-price" id="totalPrice">Total Price: R0</div>
+
+    <label for="name">Name *</label>
+    <input type="text" id="name" required>
+
+    <label for="surname">Surname *</label>
+    <input type="text" id="surname" required>
+
+    <label for="phone">Phone Number *</label>
+    <input type="tel" id="phone" required>
+
+    <label for="email">Email Address *</label>
+    <input type="email" id="email" required>
+
+    <label for="arrival">Arrival Time (Optional)</label>
+    <input type="time" id="arrival">
+
+    <label for="request">Any Special Request (Optional)</label>
+    <textarea id="request" rows="4"></textarea>
+
+    <button type="submit">Proceed</button>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById("bookingForm");
+  const checkin = document.getElementById("checkin");
+  const checkout = document.getElementById("checkout");
+  const roomType = document.getElementById("roomType");
+  const totalPrice = document.getElementById("totalPrice");
+
+  const roomPrices = {
+    1: 850,
+    2: 1600,
+    4: 2500
+  };
+
+  function calculateNights() {
+    const inDate = new Date(checkin.value);
+    const outDate = new Date(checkout.value);
+    if (inDate && outDate && outDate > inDate) {
+      return (outDate - inDate) / (1000 * 60 * 60 * 24);
+    }
+    return 0;
+  }
+
+  function updateTotal() {
+    const nights = calculateNights();
+    const type = roomType.value;
+    if (nights > 0 && type) {
+      const total = nights * roomPrices[type];
+      totalPrice.textContent = `Total Price: R${total.toFixed(2)}`;
+    } else {
+      totalPrice.textContent = `Total Price: R0`;
+    }
+  }
+
+  checkin.addEventListener("change", updateTotal);
+  checkout.addEventListener("change", updateTotal);
+  roomType.addEventListener("change", updateTotal);
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const requiredFields = ["checkin", "checkout", "roomType", "name", "surname", "phone", "email"];
+    let valid = true;
+
+    requiredFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.style.borderColor = 'red';
+        valid = false;
+      } else {
+        el.style.borderColor = '#ccc';
+      }
+    });
+
+    if (!valid) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    const bookingData = {
+  checkin: checkin.value,
+  checkout: checkout.value,
+  roomType: roomType.value,
+  name: document.getElementById("name").value,
+  surname: document.getElementById("surname").value,
+  phone: document.getElementById("phone").value,
+  email: document.getElementById("email").value,
+  arrival: document.getElementById("arrival").value,
+  request: document.getElementById("request").value
+};
+
+fetch("https://script.google.com/macros/s/AKfycbyRhvNiOh4Dn1zQZ-nTUMO9_p3ujr_elz6bs-cfgp0SlFy17ahyZk7y4dlTcBHqAzwM/exec", {
+  method: "POST",
+  body: JSON.stringify(bookingData),
+  headers: {
+    "Content-Type": "application/json"
+  }
+})
+.then(res => {
+  if (res.ok) {
+    window.location.href = "paymet.html";
+  } else {
+    alert("There was a problem saving your booking. Please try again.");
+  }
+})
+.catch(err => {
+  console.error(err);
+  alert("Network error. Please try again.");
+});
+
+  });
+</script>
+
+</body>
+</html>
